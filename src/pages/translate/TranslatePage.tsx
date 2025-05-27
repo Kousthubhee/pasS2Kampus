@@ -51,27 +51,28 @@ const Translate: React.FC = () => {
     }
   };
 
-  const translateText = async (text: string) => {
-    if (!text.trim()) return;
+ const translateText = async (text: string) => {
+  if (!text.trim()) return;
 
-    try {
-      const response = await fetch('https://libretranslate.de/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: text,
-          source: 'en',
-          target: 'fr',
-          format: 'text',
-        }),
-      });
+  try {
+    const response = await fetch('https://translate.argosopentech.com/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q: text,
+        source: 'en',
+        target: 'fr',
+        format: 'text',
+      }),
+    });
 
-      const data = await response.json();
-      setTranslatedText(data.translatedText);
-    } catch (error) {
-      console.error('LibreTranslate fetch error:', error);
-    }
-  };
+    const data = await response.json();
+    setTranslatedText(data.translatedText);
+  } catch (error) {
+    console.error('LibreTranslate fetch error:', error);
+  }
+};
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
