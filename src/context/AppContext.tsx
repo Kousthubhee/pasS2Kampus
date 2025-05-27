@@ -40,6 +40,8 @@ interface AppContextType {
   schools: School[];
   keysRemaining: number;
   useKey: (moduleId: number) => void;
+  earnKey: () => void;                            // ✅ Added
+  isUnlocked: (required?: number) => boolean;     // ✅ Added
 }
 
 // Default context
@@ -53,6 +55,8 @@ const defaultContext: AppContextType = {
   schools: [],
   keysRemaining: 3,
   useKey: () => {},
+  earnKey: () => {},
+  isUnlocked: () => false
 };
 
 // Create context
@@ -219,12 +223,11 @@ const schoolsData: School[] = [
 
 // Provider component
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  // Load saved progress from localStorage
   const [modules, setModules] = useState<ChecklistModule[]>(() => {
     const savedModules = localStorage.getItem('checklist-modules');
     return savedModules ? JSON.parse(savedModules) : initialModules;
   });
-  
+
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [schools] = useState<School[]>(schoolsData);
   const [keysRemaining, setKeysRemaining] = useState(() => {
@@ -232,89 +235,70 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return savedKeys ? parseInt(savedKeys, 10) : 3;
   });
 
-  // Save progress to localStorage
   useEffect(() => {
     localStorage.setItem('checklist-modules', JSON.stringify(modules));
     localStorage.setItem('keys-remaining', keysRemaining.toString());
   }, [modules, keysRemaining]);
 
-  // Mark a checklist item as complete
   const completeItem = (moduleId: number, itemId: string) => {
     setModules(prevModules => {
       const newModules = [...prevModules];
       const moduleIndex = newModules.findIndex(m => m.id === moduleId);
-      
       if (moduleIndex === -1) return prevModules;
-      
-      const module = {...newModules[moduleIndex]};
+
+      const module = { ...newModules[moduleIndex] };
       const itemIndex = module.items.findIndex(i => i.id === itemId);
-      
       if (itemIndex === -1) return prevModules;
-      
-      // Toggle the completed state
+
       const newItems = [...module.items];
-      newItems[itemIndex] = {
-        ...newItems[itemIndex],
-        isCompleted: !newItems[itemIndex].isCompleted
-      };
-      
+      newItems[itemIndex].isCompleted = !newItems[itemIndex].isCompleted;
       module.items = newItems;
-      
-      // Check if all items are completed
+
       const allCompleted = newItems.every(item => item.isCompleted);
       module.isCompleted = allCompleted;
-      
-      // Unlock next module if this one is completed
+
       if (allCompleted && moduleIndex < newModules.length - 1) {
-        newModules[moduleIndex + 1] = {
-          ...newModules[moduleIndex + 1],
-          isLocked: false
-        };
+        newModules[moduleIndex + 1].isLocked = false;
       }
-      
+
       newModules[moduleIndex] = module;
       return newModules;
     });
   };
 
-  // Use a key to unlock a module
   const useKey = (moduleId: number) => {
     if (keysRemaining > 0) {
       setKeysRemaining(prev => prev - 1);
       setModules(prevModules => {
         const newModules = [...prevModules];
         const moduleIndex = newModules.findIndex(m => m.id === moduleId);
-        
         if (moduleIndex === -1) return prevModules;
-        
-        newModules[moduleIndex] = {
-          ...newModules[moduleIndex],
-          isLocked: false
-        };
-        
+
+        newModules[moduleIndex].isLocked = false;
         return newModules;
       });
     }
   };
 
-  // Manually unlock a module
+  const earnKey = () => {
+    setKeysRemaining(prev => prev + 1);
+  };
+
+  const isUnlocked = (required: number = 1) => {
+    return keysRemaining >= required;
+  };
+
   const unlockModule = (moduleId: number) => {
     setModules(prevModules => {
       const newModules = [...prevModules];
       const moduleIndex = newModules.findIndex(m => m.id === moduleId);
-      
       if (moduleIndex === -1) return prevModules;
-      
-      newModules[moduleIndex] = {
-        ...newModules[moduleIndex],
-        isLocked: false
-      };
-      
+
+      newModules[moduleIndex].isLocked = false;
       return newModules;
     });
   };
 
-  // Reset all progress
   const resetProgress = () => {
     setModules(initialModules);
     setSelectedSchool(null);
@@ -331,12 +315,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setSelectedSchool,
       schools,
       keysRemaining,
-      useKey
+      useKey,
+      earnKey,
+      isUnlocked
     }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-// Custom hook for using the context
 export const useAppContext = () => useContext(AppContext);
+
+
+
+
+
