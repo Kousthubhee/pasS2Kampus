@@ -1,14 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 
-// Types
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  isCompleted: boolean;
-  isLocked: boolean;
-  details?: string;
-}
-
+// Define our module types
 export interface ChecklistModule {
   id: number;
   title: string;
@@ -17,6 +9,13 @@ export interface ChecklistModule {
   isCompleted: boolean;
   isLocked: boolean;
   items: ChecklistItem[];
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  isCompleted: boolean;
+  details?: string;
 }
 
 export interface School {
@@ -30,6 +29,7 @@ export interface School {
   imageUrl: string;
 }
 
+// Context type
 interface AppContextType {
   modules: ChecklistModule[];
   completeItem: (moduleId: number, itemId: string) => void;
@@ -40,39 +40,125 @@ interface AppContextType {
   schools: School[];
   keysRemaining: number;
   useKey: (moduleId: number) => void;
-  earnKey: () => void;
-  isUnlocked: (required?: number) => boolean;
 }
 
 // Default context
-const AppContext = createContext<AppContextType>({} as AppContextType);
+const defaultContext: AppContextType = {
+  modules: [],
+  completeItem: () => {},
+  unlockModule: () => {},
+  resetProgress: () => {},
+  selectedSchool: null,
+  setSelectedSchool: () => {},
+  schools: [],
+  keysRemaining: 3,
+  useKey: () => {},
+};
 
-// Sample initialModules (shortened here, update your real module list accordingly)
+// Create context
+const AppContext = createContext<AppContextType>(defaultContext);
+
+// Initial modules data
 const initialModules: ChecklistModule[] = [
   {
     id: 1,
     title: "School",
     icon: "🏫",
-    description: "Explore French business schools",
+    description: "Explore French business schools and their offerings",
     isCompleted: false,
     isLocked: false,
     items: [
-      { id: "1-1", text: "Research programs", isCompleted: false, isLocked: false },
-      { id: "1-2", text: "Compare costs", isCompleted: false, isLocked: true },
-      { id: "1-3", text: "Check admission criteria", isCompleted: false, isLocked: true },
+      { id: "1-1", text: "Research programs", isCompleted: false },
+      { id: "1-2", text: "Compare costs", isCompleted: false },
+      { id: "1-3", text: "Check admission criteria", isCompleted: false },
+      { id: "1-4", text: "Explore campus locations", isCompleted: false },
     ],
   },
   {
     id: 2,
     title: "Pre-Arrival Checklist (Part 1)",
     icon: "✈️",
-    description: "Before departure: Visa, Campus France, docs, flight",
+    description: "Essential steps before departure",
     isCompleted: false,
     isLocked: true,
     items: [
-      { id: "2-1", text: "Complete Campus France application", isCompleted: false, isLocked: false },
-      { id: "2-2", text: "Schedule VFS visa appointment", isCompleted: false, isLocked: true },
-      { id: "2-3", text: "Book flights", isCompleted: false, isLocked: true },
+      { id: "2-1", text: "Complete Campus France application", isCompleted: false, details: "Step-by-step guide for Campus France process" },
+      { id: "2-2", text: "Schedule VFS visa appointment", isCompleted: false, details: "Documents needed for visa application" },
+      { id: "2-3", text: "Book flights", isCompleted: false, details: "Tips for finding student discounts" },
+      { id: "2-4", text: "Organize essential documents", isCompleted: false, details: "Checklist of required paperwork" },
+    ],
+  },
+  {
+    id: 3,
+    title: "Pre-Arrival Checklist (Part 2)",
+    icon: "🧳",
+    description: "Preparing for your journey",
+    isCompleted: false,
+    isLocked: true,
+    items: [
+      { id: "3-1", text: "Pack essential food items", isCompleted: false },
+      { id: "3-2", text: "Prepare weather-appropriate clothing", isCompleted: false },
+      { id: "3-3", text: "Complete packing checklist", isCompleted: false },
+      { id: "3-4", text: "Exchange currency", isCompleted: false },
+    ],
+  },
+  {
+    id: 4,
+    title: "Post-Arrival Checklist",
+    icon: "🏠",
+    description: "First steps in France",
+    isCompleted: false,
+    isLocked: true,
+    items: [
+      { id: "4-1", text: "Open a French bank account", isCompleted: false },
+      { id: "4-2", text: "Apply for social security number", isCompleted: false },
+      { id: "4-3", text: "Submit CAF housing aid application", isCompleted: false },
+      { id: "4-4", text: "Obtain Carte Vitale", isCompleted: false },
+      { id: "4-5", text: "Schedule required medical appointments", isCompleted: false },
+      { id: "4-6", text: "Get transportation card", isCompleted: false },
+    ],
+  },
+  {
+    id: 5,
+    title: "Local Insights",
+    icon: "🔍",
+    description: "Navigating your new home",
+    isCompleted: false,
+    isLocked: true,
+    items: [
+      { id: "5-1", text: "Locate Indian grocery stores", isCompleted: false },
+      { id: "5-2", text: "Compare mobile plans", isCompleted: false },
+      { id: "5-3", text: "Join student communities", isCompleted: false },
+      { id: "5-4", text: "Save emergency contacts", isCompleted: false },
+      { id: "5-5", text: "Learn local cultural norms", isCompleted: false },
+    ],
+  },
+  {
+    id: 6,
+    title: "University Registration & Orientation",
+    icon: "🎓",
+    description: "Starting your academic journey",
+    isCompleted: false,
+    isLocked: true,
+    items: [
+      { id: "6-1", text: "Complete enrollment process", isCompleted: false },
+      { id: "6-2", text: "Obtain student insurance", isCompleted: false },
+      { id: "6-3", text: "Activate student card", isCompleted: false },
+      { id: "6-4", text: "Attend orientation sessions", isCompleted: false },
+    ],
+  },
+  {
+    id: 7,
+    title: "Documents & Renewals",
+    icon: "📝",
+    description: "Maintaining your legal status",
+    isCompleted: false,
+    isLocked: true,
+    items: [
+      { id: "7-1", text: "Validate visa online", isCompleted: false },
+      { id: "7-2", text: "Complete OFII procedure", isCompleted: false },
+      { id: "7-3", text: "Update student insurance", isCompleted: false },
+      { id: "7-4", text: "Set renewal reminders", isCompleted: false },
     ],
   },
 ];
@@ -131,13 +217,14 @@ const schoolsData: School[] = [
   }
 ];
 
-
+// Provider component
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  // Load saved progress from localStorage
   const [modules, setModules] = useState<ChecklistModule[]>(() => {
     const savedModules = localStorage.getItem('checklist-modules');
     return savedModules ? JSON.parse(savedModules) : initialModules;
   });
-
+  
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [schools] = useState<School[]>(schoolsData);
   const [keysRemaining, setKeysRemaining] = useState(() => {
@@ -145,75 +232,89 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return savedKeys ? parseInt(savedKeys, 10) : 3;
   });
 
+  // Save progress to localStorage
   useEffect(() => {
     localStorage.setItem('checklist-modules', JSON.stringify(modules));
     localStorage.setItem('keys-remaining', keysRemaining.toString());
   }, [modules, keysRemaining]);
 
-  const earnKey = () => setKeysRemaining(prev => prev + 1);
-  const isUnlocked = (required: number = 1) => keysRemaining >= required;
-
-  const useKey = (moduleId: number) => {
-    if (keysRemaining > 0) {
-      setKeysRemaining(prev => prev - 1);
-      setModules(prevModules => {
-        const newModules = [...prevModules];
-        const modIndex = newModules.findIndex(m => m.id === moduleId);
-        if (modIndex !== -1) newModules[modIndex].isLocked = false;
-        return newModules;
-      });
-    }
-  };
-
+  // Mark a checklist item as complete
   const completeItem = (moduleId: number, itemId: string) => {
     setModules(prevModules => {
       const newModules = [...prevModules];
       const moduleIndex = newModules.findIndex(m => m.id === moduleId);
+      
       if (moduleIndex === -1) return prevModules;
-
-      const module = { ...newModules[moduleIndex] };
+      
+      const module = {...newModules[moduleIndex]};
       const itemIndex = module.items.findIndex(i => i.id === itemId);
+      
       if (itemIndex === -1) return prevModules;
-
-      const item = module.items[itemIndex];
-      item.isCompleted = !item.isCompleted;
-
-      // Unlock next item if current is now completed
-      if (item.isCompleted && itemIndex + 1 < module.items.length) {
-        module.items[itemIndex + 1].isLocked = false;
-      }
-
-      // Check if all items complete
-      const allCompleted = module.items.every(i => i.isCompleted);
+      
+      // Toggle the completed state
+      const newItems = [...module.items];
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        isCompleted: !newItems[itemIndex].isCompleted
+      };
+      
+      module.items = newItems;
+      
+      // Check if all items are completed
+      const allCompleted = newItems.every(item => item.isCompleted);
       module.isCompleted = allCompleted;
-
-      // If module is complete: earn key + unlock next module only
-      if (allCompleted) {
-        earnKey();
-
-        newModules.forEach((mod, i) => {
-          mod.isLocked = i !== moduleIndex + 1;
-        });
-
-        if (moduleIndex + 1 < newModules.length) {
-          newModules[moduleIndex + 1].isLocked = false;
-        }
+      
+      // Unlock next module if this one is completed
+      if (allCompleted && moduleIndex < newModules.length - 1) {
+        newModules[moduleIndex + 1] = {
+          ...newModules[moduleIndex + 1],
+          isLocked: false
+        };
       }
-
+      
       newModules[moduleIndex] = module;
       return newModules;
     });
   };
 
+  // Use a key to unlock a module
+  const useKey = (moduleId: number) => {
+    if (keysRemaining > 0) {
+      setKeysRemaining(prev => prev - 1);
+      setModules(prevModules => {
+        const newModules = [...prevModules];
+        const moduleIndex = newModules.findIndex(m => m.id === moduleId);
+        
+        if (moduleIndex === -1) return prevModules;
+        
+        newModules[moduleIndex] = {
+          ...newModules[moduleIndex],
+          isLocked: false
+        };
+        
+        return newModules;
+      });
+    }
+  };
+
+  // Manually unlock a module
   const unlockModule = (moduleId: number) => {
     setModules(prevModules => {
       const newModules = [...prevModules];
-      const modIndex = newModules.findIndex(m => m.id === moduleId);
-      if (modIndex !== -1) newModules[modIndex].isLocked = false;
+      const moduleIndex = newModules.findIndex(m => m.id === moduleId);
+      
+      if (moduleIndex === -1) return prevModules;
+      
+      newModules[moduleIndex] = {
+        ...newModules[moduleIndex],
+        isLocked: false
+      };
+      
       return newModules;
     });
   };
 
+  // Reset all progress
   const resetProgress = () => {
     setModules(initialModules);
     setSelectedSchool(null);
@@ -230,20 +331,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setSelectedSchool,
       schools,
       keysRemaining,
-      useKey,
-      earnKey,
-      isUnlocked
+      useKey
     }}>
       {children}
     </AppContext.Provider>
   );
 };
 
+// Custom hook for using the context
 export const useAppContext = () => useContext(AppContext);
-
-
-
-
-
-
-
