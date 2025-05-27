@@ -6,7 +6,7 @@ const Footer: React.FC = () => {
     <footer className="bg-white border-t border-gray-200 py-6">
       <div className="container mx-auto px-4 text-center">
         <p className="text-gray-600 flex items-center justify-center">
-          🎓 © {new Date().getFullYear()} Kousthubhee • Srivatsava • Made for students
+          🎓 © {new Date().getFullYear()} Kousthubhee Krishna • Srivatsava • Made for students
         </p>
         <div className="mt-4 flex justify-center space-x-4 text-sm text-gray-500">
           <a href="#" className="hover:text-primary-600 transition-colors">Privacy Policy</a>
