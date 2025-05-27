@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
 import { Mic, MicOff, Volume as VolumeUp, Languages, Copy, Check } from 'lucide-react';
 
 const Translate: React.FC = () => {
@@ -56,22 +55,21 @@ const Translate: React.FC = () => {
     if (!text.trim()) return;
 
     try {
-      const response = await axios.post(
-        'https://libretranslate.de/translate',
-        {
+      const response = await fetch('https://libretranslate.de/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           q: text,
           source: 'en',
           target: 'fr',
           format: 'text',
-        },
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+        }),
+      });
 
-      setTranslatedText(response.data.translatedText);
+      const data = await response.json();
+      setTranslatedText(data.translatedText);
     } catch (error) {
-      console.error('LibreTranslate API error:', error);
+      console.error('LibreTranslate fetch error:', error);
     }
   };
 
