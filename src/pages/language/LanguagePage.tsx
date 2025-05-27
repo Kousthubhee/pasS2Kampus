@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, Award, Volume2, Check, ChevronDown, ChevronUp, Play } from 'lucide-react';
 import Button from '../../components/ui/Button';
@@ -24,8 +24,32 @@ const LanguagePage: React.FC = () => {
   const [expandedLesson, setExpandedLesson] = useState<number | null>(1);
   const [activeFlashcard, setActiveFlashcard] = useState<number | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
-  
-  // Module data
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    const loadVoices = () => {
+      const availableVoices = synth.getVoices();
+      setVoices(availableVoices);
+    };
+    loadVoices();
+    if (synth.onvoiceschanged !== undefined) {
+      synth.onvoiceschanged = loadVoices;
+    }
+  }, []);
+
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const synth = window.speechSynthesis;
+      const frenchVoice = voices.find(voice => voice.lang === 'fr-FR');
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      if (frenchVoice) utterance.voice = frenchVoice;
+      synth.cancel();
+      synth.speak(utterance);
+    }
+  };
+
   const modules = [
     {
       id: 'greetings',
@@ -38,31 +62,11 @@ const LanguagePage: React.FC = () => {
           description: 'Learn essential greetings to start conversations in French',
           completed: false,
           flashcards: [
-            {
-              id: 1,
-              french: 'Bonjour',
-              english: 'Hello / Good day',
-              example: 'Bonjour, comment allez-vous?',
-            },
-            {
-              id: 2,
-              french: 'Bonsoir',
-              english: 'Good evening',
-              example: 'Bonsoir, je m\'appelle Marc.',
-            },
-            {
-              id: 3,
-              french: 'Au revoir',
-              english: 'Goodbye',
-              example: 'Au revoir, à demain!',
-            },
-            {
-              id: 4,
-              french: 'Salut',
-              english: 'Hi / Bye (informal)',
-              example: 'Salut, ça va?',
-            },
-          ],
+            { id: 1, french: 'Bonjour', english: 'Hello / Good day', example: 'Bonjour, comment allez-vous?' },
+            { id: 2, french: 'Bonsoir', english: 'Good evening', example: 'Bonsoir, je m\'appelle Marc.' },
+            { id: 3, french: 'Au revoir', english: 'Goodbye', example: 'Au revoir, à demain!' },
+            { id: 4, french: 'Salut', english: 'Hi / Bye (informal)', example: 'Salut, ça va?' }
+          ]
         },
         {
           id: 2,
@@ -70,33 +74,13 @@ const LanguagePage: React.FC = () => {
           description: 'Learn how to introduce yourself and ask basic questions',
           completed: false,
           flashcards: [
-            {
-              id: 5,
-              french: 'Je m\'appelle...',
-              english: 'My name is...',
-              example: 'Je m\'appelle Sophie.',
-            },
-            {
-              id: 6,
-              french: 'Comment vous appelez-vous?',
-              english: 'What is your name? (formal)',
-              example: 'Bonjour, comment vous appelez-vous?',
-            },
-            {
-              id: 7,
-              french: 'Comment tu t\'appelles?',
-              english: 'What is your name? (informal)',
-              example: 'Salut, comment tu t\'appelles?',
-            },
-            {
-              id: 8,
-              french: 'Enchanté(e)',
-              english: 'Pleased to meet you',
-              example: 'Je m\'appelle Pierre. Enchanté!',
-            },
-          ],
-        },
-      ],
+            { id: 5, french: 'Je m\'appelle...', english: 'My name is...', example: 'Je m\'appelle Sophie.' },
+            { id: 6, french: 'Comment vous appelez-vous?', english: 'What is your name? (formal)', example: 'Bonjour, comment vous appelez-vous?' },
+            { id: 7, french: 'Comment tu t\'appelles?', english: 'What is your name? (informal)', example: 'Salut, comment tu t\'appelles?' },
+            { id: 8, french: 'Enchanté(e)', english: 'Pleased to meet you', example: 'Je m\'appelle Pierre. Enchanté!' }
+          ]
+        }
+      ]
     },
     {
       id: 'directions',
@@ -218,43 +202,30 @@ const LanguagePage: React.FC = () => {
   ];
   
   // Get active module data
+
   const currentModule = modules.find(m => m.id === activeModule);
-  
-  // Handle lesson click
+
   const toggleLesson = (lessonId: number) => {
     setExpandedLesson(expandedLesson === lessonId ? null : lessonId);
     setActiveFlashcard(null);
     setShowTranslation(false);
   };
-  
-  // Handle flashcard click
+
   const handleFlashcardClick = (cardId: number) => {
     setActiveFlashcard(cardId);
     setShowTranslation(false);
   };
-  
-  // Text-to-speech function
-  const speakText = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'fr-FR';
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-  
-  // Get current flashcard
+
   const getCurrentFlashcard = () => {
     if (!currentModule || expandedLesson === null || activeFlashcard === null) return null;
-    
     const lesson = currentModule.lessons.find(l => l.id === expandedLesson);
     if (!lesson) return null;
-    
     return lesson.flashcards.find(f => f.id === activeFlashcard);
   };
-  
+
   const currentFlashcard = getCurrentFlashcard();
-  
-  return (
+
+ return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -454,6 +425,7 @@ const LanguagePage: React.FC = () => {
       </div>
     </motion.div>
   );
+
 };
 
 export default LanguagePage;
