@@ -1,276 +1,229 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Languages, Mic, VolumeX, Volume2, ArrowRightLeft, Copy, Check } from 'lucide-react';
-import Button from '../../components/ui/Button';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mic, MicOff, Volume as VolumeUp, Languages, Copy, Check } from 'lucide-react';
 
-const TranslatePage: React.FC = () => {
-  const [fromLanguage, setFromLanguage] = useState<'en' | 'fr'>('en');
-  const [toLanguage, setToLanguage] = useState<'en' | 'fr'>('fr');
-  const [inputText, setInputText] = useState('');
-  const [outputText, setOutputText] = useState('');
+const Translate: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
+  const [sourceText, setSourceText] = useState('');
+  const [translatedText, setTranslatedText] = useState('');
   const [copied, setCopied] = useState(false);
-  
-  // Sample translations for demo
-  const sampleTranslations: Record<string, Record<string, string>> = {
-    en: {
-      'Hello': 'Bonjour',
-      'How are you?': 'Comment allez-vous?',
-      'My name is': 'Je m\'appelle',
-      'Thank you': 'Merci',
-      'Excuse me': 'Excusez-moi',
-      'Where is the bathroom?': 'Où sont les toilettes?',
-      'I would like to order': 'Je voudrais commander',
-      'How much does it cost?': 'Combien ça coûte?',
-      'I don\'t understand': 'Je ne comprends pas',
-      'Can you help me?': 'Pouvez-vous m\'aider?',
-    },
-    fr: {
-      'Bonjour': 'Hello',
-      'Comment allez-vous?': 'How are you?',
-      'Je m\'appelle': 'My name is',
-      'Merci': 'Thank you',
-      'Excusez-moi': 'Excuse me',
-      'Où sont les toilettes?': 'Where is the bathroom?',
-      'Je voudrais commander': 'I would like to order',
-      'Combien ça coûte?': 'How much does it cost?',
-      'Je ne comprends pas': 'I don\'t understand',
-      'Pouvez-vous m\'aider?': 'Can you help me?',
+
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result) => result.transcript)
+          .join('');
+
+        setSourceText(transcript);
+        simulateTranslation(transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
     }
-  };
-  
-  // Translate text (mock implementation)
-  const translateText = () => {
-    if (!inputText.trim()) return;
-    
-    // Check if we have an exact match in our sample translations
-    if (sampleTranslations[fromLanguage][inputText]) {
-      setOutputText(sampleTranslations[fromLanguage][inputText]);
-      return;
-    }
-    
-    // Otherwise do a simple "translation" for demo purposes
-    if (fromLanguage === 'en' && toLanguage === 'fr') {
-      setOutputText(`[Translated to French]: ${inputText}`);
-    } else {
-      setOutputText(`[Translated to English]: ${inputText}`);
-    }
-  };
-  
-  // Swap languages
-  const swapLanguages = () => {
-    setFromLanguage(fromLanguage === 'en' ? 'fr' : 'en');
-    setToLanguage(toLanguage === 'en' ? 'fr' : 'en');
-    setInputText(outputText);
-    setOutputText('');
-  };
-  
-  // Start speech recognition (mock implementation)
-  const startListening = () => {
-    setIsListening(true);
-    
-    // In a real app, this would use the Web Speech API
-    // For this demo, just simulate speech recognition after a delay
-    setTimeout(() => {
-      if (fromLanguage === 'en') {
-        setInputText('Can you help me?');
-      } else {
-        setInputText('Pouvez-vous m\'aider?');
+
+    // Ensure voice list loads
+    window.speechSynthesis.onvoiceschanged = () => {};
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
       }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
       setIsListening(false);
-    }, 2000);
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Error starting speech recognition', error);
+      }
+    }
   };
-  
-  // Text-to-speech function
-  const speakText = (text: string, lang: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang === 'en' ? 'en-US' : 'fr-FR';
+
+  const simulateTranslation = (text: string) => {
+    const frenchPhrases: Record<string, string> = {
+      'hello': 'Bonjour',
+      'good morning': 'Bon matin',
+      'how are you': 'Comment allez-vous',
+      'thank you': 'Merci',
+      'goodbye': 'Au revoir',
+      'my name is': 'Je m\'appelle',
+      'where is': 'Où est',
+      'how much': 'Combien',
+      'help': 'Aidez-moi',
+      'please': 's\'il vous plaît',
+      'excuse me': 'Excusez-moi',
+      'sorry': 'Désolé',
+      'yes': 'Oui',
+      'no': 'Non',
+      'i would like': 'Je voudrais',
+      'restaurant': 'restaurant',
+      'food': 'nourriture',
+      'water': 'eau',
+      'toilet': 'toilettes'
+    };
+
+    let translated = text.toLowerCase();
+
+    Object.entries(frenchPhrases).forEach(([english, french]) => {
+      const regex = new RegExp(`\\b${english}\\b`, 'gi');
+      translated = translated.replace(regex, french);
+    });
+
+    setTranslatedText(translated);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setSourceText(e.target.value);
+    simulateTranslation(e.target.value);
+  };
+
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window && text.trim()) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.trim());
+      utterance.lang = 'fr-FR';
+
+      const voices = window.speechSynthesis.getVoices();
+      const frenchVoice = voices.find(voice => voice.lang.startsWith('fr'));
+      if (frenchVoice) {
+        utterance.voice = frenchVoice;
+      }
+
       window.speechSynthesis.speak(utterance);
     }
   };
-  
-  // Copy text to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(translatedText).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
-  
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="page-container"
-    >
-      <div className="section-title">
-        <Languages size={24} />
-        Speak & Translate
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Voice Translator</h1>
+        <p className="text-gray-600">
+          Translate English to French in real-time. Speak or type to translate.
+        </p>
       </div>
-      
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="p-6 bg-gradient-to-r from-primary-700 to-primary-900 text-white">
-          <h2 className="text-xl font-bold mb-2">Real-time Translation</h2>
-          <p className="text-sm opacity-90">
-            Translate between French and English to help you communicate effectively.
-            Use the microphone for speech recognition or type directly.
-          </p>
-        </div>
-        
-        <div className="p-6">
-          {/* Language selector */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">From</h3>
-              <select
-                value={fromLanguage}
-                onChange={(e) => setFromLanguage(e.target.value as 'en' | 'fr')}
-                className="w-full p-2 border border-gray-300 rounded-lg"
-              >
-                <option value="en">English</option>
-                <option value="fr">French</option>
-              </select>
-            </div>
-            
-            <div className="mx-4">
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          <div className="p-6 border-b md:border-b-0 md:border-r border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium text-gray-800">English</h2>
               <button
-                onClick={swapLanguages}
-                className="p-2 rounded-full hover:bg-gray-100"
+                onClick={toggleListening}
+                className={`p-2 rounded-full ${
+                  isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-100 text-blue-600'
+                }`}
+                aria-label={isListening ? 'Stop listening' : 'Start listening'}
               >
-                <ArrowRightLeft size={20} className="text-gray-600" />
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
             </div>
-            
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">To</h3>
-              <select
-                value={toLanguage}
-                onChange={(e) => setToLanguage(e.target.value as 'en' | 'fr')}
-                className="w-full p-2 border border-gray-300 rounded-lg"
-              >
-                <option value="en">English</option>
-                <option value="fr">French</option>
-              </select>
-            </div>
-          </div>
-          
-          {/* Input text */}
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-medium text-gray-700">
-                {fromLanguage === 'en' ? 'English' : 'French'}
-              </h3>
-              <div className="flex items-center">
-                <button
-                  onClick={() => speakText(inputText, fromLanguage)}
-                  className="p-2 rounded-full hover:bg-gray-100 mr-2"
-                  disabled={!inputText}
-                >
-                  <Volume2 size={18} className={`${!inputText ? 'text-gray-300' : 'text-gray-600'}`} />
-                </button>
-                <button
-                  onClick={startListening}
-                  className={`p-2 rounded-full ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'hover:bg-gray-100 text-gray-600'}`}
-                  disabled={isListening}
-                >
-                  <Mic size={18} />
-                </button>
-              </div>
-            </div>
+
             <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={`Type in ${fromLanguage === 'en' ? 'English' : 'French'}...`}
-              className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent"
-              disabled={isListening}
-            ></textarea>
-          </div>
-          
-          <Button
-            onClick={translateText}
-            fullWidth
-            className="mb-4"
-          >
-            Translate
-          </Button>
-          
-          {/* Output text */}
-          {outputText && (
-            <div className="mt-6">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-gray-700">
-                  {toLanguage === 'en' ? 'English' : 'French'}
-                </h3>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => speakText(outputText, toLanguage)}
-                    className="p-2 rounded-full hover:bg-gray-100 mr-2"
-                  >
-                    <Volume2 size={18} className="text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => copyToClipboard(outputText)}
-                    className="p-2 rounded-full hover:bg-gray-100"
-                  >
-                    {copied ? (
-                      <Check size={18} className="text-green-600" />
-                    ) : (
-                      <Copy size={18} className="text-gray-600" />
-                    )}
-                  </button>
-                </div>
+              value={sourceText}
+              onChange={handleInputChange}
+              placeholder="Speak or type here in English..."
+              className="w-full h-40 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            {isListening && (
+              <div className="mt-2 text-sm text-red-600 flex items-center">
+                <Mic className="w-4 h-4 mr-1 animate-pulse" />
+                Listening... Speak now
               </div>
-              <div className="w-full min-h-32 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <p className="text-gray-800">{outputText}</p>
+            )}
+          </div>
+
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium text-gray-800">French</h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => speakText(translatedText)}
+                  className="p-2 rounded-full bg-blue-100 text-blue-600"
+                  aria-label="Speak translation"
+                  disabled={!translatedText.trim()}
+                >
+                  <VolumeUp className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={copyToClipboard}
+                  className="p-2 rounded-full bg-blue-100 text-blue-600"
+                  aria-label="Copy translation"
+                  disabled={!translatedText.trim()}
+                >
+                  {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                </button>
               </div>
             </div>
-          )}
+
+            <div className="w-full h-40 p-3 border border-gray-300 rounded-md bg-gray-50 overflow-auto">
+              {translatedText.trim() || <span className="text-gray-400">Translation will appear here...</span>}
+            </div>
+          </div>
         </div>
-        
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <h3 className="font-medium text-gray-700 mb-2">Common Phrases</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => {
-                setInputText(fromLanguage === 'en' ? 'Excuse me' : 'Excusez-moi');
-                translateText();
-              }}
-              className="bg-white border border-gray-200 rounded-full px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              {fromLanguage === 'en' ? 'Excuse me' : 'Excusez-moi'}
-            </button>
-            <button
-              onClick={() => {
-                setInputText(fromLanguage === 'en' ? 'Thank you' : 'Merci');
-                translateText();
-              }}
-              className="bg-white border border-gray-200 rounded-full px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              {fromLanguage === 'en' ? 'Thank you' : 'Merci'}
-            </button>
-            <button
-              onClick={() => {
-                setInputText(fromLanguage === 'en' ? 'Where is the bathroom?' : 'Où sont les toilettes?');
-                translateText();
-              }}
-              className="bg-white border border-gray-200 rounded-full px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              {fromLanguage === 'en' ? 'Where is the bathroom?' : 'Où sont les toilettes?'}
-            </button>
-            <button
-              onClick={() => {
-                setInputText(fromLanguage === 'en' ? 'How much does it cost?' : 'Combien ça coûte?');
-                translateText();
-              }}
-              className="bg-white border border-gray-200 rounded-full px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              {fromLanguage === 'en' ? 'How much does it cost?' : 'Combien ça coûte?'}
-            </button>
+
+        <div className="bg-blue-50 p-4 border-t border-blue-100 flex items-center">
+          <Languages className="w-5 h-5 text-blue-600 mr-3" />
+          <div className="text-blue-700 text-sm">
+            <strong>Pro Tip:</strong> For better translations, speak clearly and in short sentences.
+            This demo uses simple word replacement - a real app would use a professional translation API.
           </div>
         </div>
       </div>
-    </motion.div>
+
+      <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Common French Phrases</h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { english: 'Hello', french: 'Bonjour' },
+            { english: 'Thank you', french: 'Merci' },
+            { english: 'Excuse me', french: 'Excusez-moi' },
+            { english: 'Where is...?', french: 'Où est...?' },
+            { english: 'How much?', french: 'Combien ?' },
+            { english: 'I don\'t understand', french: 'Je ne comprends pas' }
+          ].map((phrase, index) => (
+            <div key={index} className="bg-gray-50 p-3 rounded-md">
+              <div className="text-gray-800 font-medium">{phrase.english}</div>
+              <div className="text-blue-700">{phrase.french}</div>
+              <button
+                onClick={() => speakText(phrase.french)}
+                className="mt-1 text-blue-600 hover:text-blue-800"
+              >
+                <VolumeUp className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default TranslatePage;
+export default Translate;
