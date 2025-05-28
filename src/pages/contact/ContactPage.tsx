@@ -35,7 +35,7 @@ const ContactPage: React.FC = () => {
             
             <div className="mt-6 p-4 bg-primary-50 rounded-lg">
               <p className="text-primary-700">
-                <strong>Creator:</strong> Kousthubhee Krishna Kotte & Srivatsava
+                <strong>Creators:</strong> Kousthubhee Krishna Kotte & Srivatsava
               </p>
               <p className="text-primary-600 mt-2">
                 Helping students navigate their journey to study in France
