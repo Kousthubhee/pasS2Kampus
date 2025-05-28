@@ -12,7 +12,7 @@ export const useKeysStore = create<KeysStore>()(
     (set) => ({
       keysRemaining: 3,
       useKey: () => set((state) => ({ keysRemaining: Math.max(0, state.keysRemaining - 1) })),
-      resetKeys: () => set({ keysRemaining: 3 }),
+      resetKeys: () => set({ keysRemaining: 7 }),
     }),
     {
       name: 'keys-storage',
