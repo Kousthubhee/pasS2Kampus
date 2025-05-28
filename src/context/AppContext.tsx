@@ -115,7 +115,7 @@ const initialModules: ChecklistModule[] = [
       { id: "4-3", text: "Submit CAF housing aid application", isCompleted: false },
       { id: "4-4", text: "Obtain Carte Vitale", isCompleted: false },
       { id: "4-5", text: "Schedule required medical appointments", isCompleted: false },
-      { id: "4-6", text: "Get transportation card", isCompleted: false },
+     
     ],
   },
   {
