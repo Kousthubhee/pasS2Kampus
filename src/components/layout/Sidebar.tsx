@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { CheckCircle, MessageSquare, Users, Newspaper, Link as LinkIcon, BookOpen, Languages, Bell, User } from 'lucide-react';
+import { CheckCircle, MessageSquare, Users, Newspaper, Link as LinkIcon, BookOpen, Languages, Bell, User, Mail } from 'lucide-react';
 
 interface SidebarProps {
   closeSidebar: () => void;
@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar }) => {
     { path: '/translate', label: 'Translate', icon: <Languages size={20} /> },
     { path: '/notifications', label: 'Notifications', icon: <Bell size={20} /> },
     { path: '/profile', label: 'Profile', icon: <User size={20} /> },
+    { path: '/contact', label: 'Contact Us', icon: <Mail size={20} /> },
   ];
 
   return (
@@ -57,9 +58,13 @@ const Sidebar: React.FC<SidebarProps> = ({ closeSidebar }) => {
           <p className="text-sm text-gray-600 mt-1">
             Reach out to our support team for assistance
           </p>
-          <button className="mt-2 w-full py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors">
+          <NavLink
+            to="/contact"
+            onClick={closeSidebar}
+            className="mt-2 w-full py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors flex items-center justify-center"
+          >
             Contact Support
-          </button>
+          </NavLink>
         </div>
       </div>
     </div>
