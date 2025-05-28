@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -9,9 +9,9 @@ const Footer: React.FC = () => {
           🎓 © {new Date().getFullYear()} Kousthubhee Krishna • Srivatsava • Made for students
         </p>
         <div className="mt-4 flex justify-center space-x-4 text-sm text-gray-500">
-          <a href="#" className="hover:text-primary-600 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-primary-600 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-primary-600 transition-colors">Contact Us</a>
+          <Link to="/contact" className="hover:text-primary-600 transition-colors">Contact Us</Link>
+          <Link to="/contact" className="hover:text-primary-600 transition-colors">Privacy Policy</Link>
+          <Link to="/contact" className="hover:text-primary-600 transition-colors">Terms of Service</Link>
         </div>
       </div>
     </footer>
