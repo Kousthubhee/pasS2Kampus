@@ -22,7 +22,7 @@ const ChecklistItem: React.FC<ChecklistItemProps> = ({ item, onToggle }) => {
           {item.isCompleted ? (
             <CheckCircle className="text-green-500 flex-shrink-0\" size={22} />
           ) : (
-            <Circle className="text-gray-400 flex-shrink-0" size={22} />
+            <Circle className="text-gray-400 flex-shrink-0\" size={22} />
           )}
         </motion.div>
         
