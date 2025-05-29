@@ -1,14 +1,16 @@
 import React from 'react';
 import { MapPin, Users, DollarSign } from 'lucide-react';
-import { School } from '../../context/AppContext';
+import { School } from '../../types/school';
 import Button from './Button';
+import { useNavigate } from 'react-router-dom';
 
 interface SchoolCardProps {
   school: School;
-  onClick: () => void;
 }
 
-const SchoolCard: React.FC<SchoolCardProps> = ({ school, onClick }) => {
+const SchoolCard: React.FC<SchoolCardProps> = ({ school }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
       <div className="h-48 overflow-hidden">
@@ -39,7 +41,7 @@ const SchoolCard: React.FC<SchoolCardProps> = ({ school, onClick }) => {
         <Button
           variant="primary"
           fullWidth
-          onClick={onClick}
+          onClick={() => navigate(`/school/${school.id}`)}
         >
           View Details
         </Button>

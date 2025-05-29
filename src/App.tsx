@@ -11,6 +11,7 @@ import TranslatePage from './pages/translate/TranslatePage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import ContactPage from './pages/contact/ContactPage';
+import SchoolPage from './pages/school/SchoolPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/school/:schoolId" element={<SchoolPage />} />
         </Routes>
       </Layout>
     </Router>
