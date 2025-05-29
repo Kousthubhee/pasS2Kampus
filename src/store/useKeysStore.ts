@@ -10,9 +10,9 @@ interface KeysStore {
 export const useKeysStore = create<KeysStore>()(
   persist(
     (set) => ({
-      keysRemaining: 7,
+      keysRemaining: 3,
       useKey: () => set((state) => ({ keysRemaining: Math.max(0, state.keysRemaining - 1) })),
-      resetKeys: () => set({ keysRemaining: 7 }),
+      resetKeys: () => set({ keysRemaining: 3 }),
     }),
     {
       name: 'keys-storage',

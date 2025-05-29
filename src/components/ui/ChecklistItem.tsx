@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react';
-import { ChecklistItem as ChecklistItemType } from '../../context/AppContext';
+import { ChecklistItem as ChecklistItemType } from '../../types/checklist';
 
 interface ChecklistItemProps {
   item: ChecklistItemType;

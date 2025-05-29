@@ -1,5 +1,3 @@
-import { ChecklistItem } from './checklist';
-
 export interface LocalInsight {
   id: string;
   title: string;
