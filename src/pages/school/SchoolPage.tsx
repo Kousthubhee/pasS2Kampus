@@ -99,9 +99,9 @@ const SchoolPage: React.FC = () => {
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex items-start">
-                    {insight.category === 'housing' && <Building className="text-blue-600 mr-3" size={20} />}
+                    {insight.category === 'housing' && <Building className="text-blue-600 mr-3\" size={20} />}
                     {insight.category === 'food' && <Coffee className="text-orange-600 mr-3" size={20} />}
-                    {insight.category === 'transport' && <Train className="text-green-600 mr-3" size={20} />}
+                    {insight.category === 'transport' && <Train className="text-green-600 mr-3\" size={20} />}
                     {insight.category === 'tips' && <Info className="text-purple-600 mr-3" size={20} />}
                     <div>
                       <h3 className="font-medium mb-1">{insight.title}</h3>
